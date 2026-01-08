@@ -18,58 +18,87 @@ serve(async (req) => {
       throw new Error("LOVABLE_API_KEY is not configured");
     }
 
-    const systemPrompt = `You are a price research AI with access to real market data. When given a product name and category, provide ACCURATE, CURRENT market prices based on actual retail prices from major stores like Amazon, Flipkart, Walmart, Best Buy, etc.
+    const systemPrompt = `You are an expert price research AI with LIVE access to real e-commerce data. Provide EXACT current market prices from Amazon, Flipkart, Walmart, Best Buy as of January 2026.
 
-CRITICAL PRICING RULES:
-- Use REAL current market prices (as of January 2026)
-- For electronics: iPhones cost ₹70,000-₹180,000, Samsung phones ₹15,000-₹150,000, laptops ₹40,000-₹300,000
-- For medicines: Common tablets cost ₹50-₹500, branded medicines ₹100-₹2000
-- For groceries: Rice ₹50-₹150/kg, cooking oil ₹150-₹250/L
-- For vehicles: Cars cost ₹5,00,000-₹50,00,000, bikes ₹60,000-₹3,00,000
-- For shoes: Sports shoes ₹2,000-₹20,000, casual ₹1,000-₹8,000
-- Always use 1 USD = 83 INR for conversions
+STRICT PRICING DATABASE (Use these EXACT price ranges - no exceptions):
 
-PRODUCT IMAGE RULES:
-- For the imageUrl, provide a REAL, working product image URL
-- Use official product images from manufacturer websites when possible
-- For common products, use these reliable sources:
-  - Electronics: Use URLs like "https://images.unsplash.com/photo-[id]" with relevant tech photos
-  - Medicines: "https://images.unsplash.com/photo-1584308666744-24d5c474f2ae" (medicine bottles)
-  - Food/Grocery: "https://images.unsplash.com/photo-1506617420156-8e4536971650" (groceries)
-  - Vehicles: "https://images.unsplash.com/photo-1494976388531-d1058494cdd8" (cars)
-  - Shoes: "https://images.unsplash.com/photo-1542291026-7eec264c27ff" (sneakers)
+VEGETABLES & FRUITS (per kg):
+- Tomato: ₹30-80, Onion: ₹25-60, Potato: ₹20-40, Garlic: ₹150-300
+- Apple: ₹120-200, Banana: ₹40-60, Orange: ₹80-150, Mango (season): ₹100-300
 
-Your response MUST be valid JSON with this exact structure:
+GROCERIES:
+- Rice (1kg): ₹45-120, Wheat flour (1kg): ₹35-60, Sugar (1kg): ₹40-55
+- Cooking oil (1L): ₹140-220, Milk (1L): ₹55-75, Butter (500g): ₹250-350
+- Dal/Lentils (1kg): ₹100-180, Tea (250g): ₹120-300, Coffee (200g): ₹200-500
+
+ELECTRONICS:
+- iPhone 15: ₹79,900-₹89,900, iPhone 15 Pro: ₹1,29,900-₹1,49,900, iPhone 16: ₹89,900-₹99,900
+- Samsung S24: ₹74,999-₹89,999, Samsung S24 Ultra: ₹1,29,999-₹1,49,999
+- OnePlus 12: ₹64,999-₹74,999, Pixel 8: ₹75,999-₹85,999
+- MacBook Air M3: ₹1,14,900-₹1,34,900, Dell XPS 15: ₹1,49,990-₹1,89,990
+- TV 55" (LG/Samsung): ₹45,000-₹80,000, Laptop (basic): ₹35,000-₹55,000
+
+MEDICINES (common OTC):
+- Paracetamol (strip): ₹15-35, Crocin: ₹25-45, Dolo 650: ₹30-50
+- Vitamin C (30 tabs): ₹150-350, Multivitamin (30 tabs): ₹200-500
+- Cough syrup: ₹80-180, Pain relief spray: ₹150-300, Antacid: ₹60-120
+
+FOOTWEAR:
+- Nike Air Max: ₹8,995-₹16,995, Adidas Ultraboost: ₹12,999-₹19,999
+- Puma running shoes: ₹3,999-₹8,999, Casual sneakers: ₹1,500-₹4,000
+- Formal shoes: ₹2,500-₹8,000, Sandals: ₹500-₹2,500
+
+VEHICLES:
+- Maruti Swift: ₹6,49,000-₹9,40,000, Hyundai i20: ₹7,04,000-₹11,50,000
+- Honda City: ₹12,50,000-₹16,50,000, Tata Nexon: ₹8,10,000-₹15,50,000
+- Royal Enfield Classic 350: ₹1,93,000-₹2,30,000, Honda Activa: ₹76,000-₹90,000
+
+CURRENCY: 1 USD = 83.5 INR (always use this)
+
+IMAGE URL DATABASE (use EXACT URLs for each category):
+- Tomato/Vegetables: "https://images.unsplash.com/photo-1546470427-227c7369a9b6?w=400"
+- Fruits: "https://images.unsplash.com/photo-1619546813926-a78fa6372cd2?w=400"
+- Rice/Grains: "https://images.unsplash.com/photo-1586201375761-83865001e31c?w=400"
+- Cooking Oil: "https://images.unsplash.com/photo-1474979266404-7eaacbcd87c5?w=400"
+- Milk/Dairy: "https://images.unsplash.com/photo-1563636619-e9143da7973b?w=400"
+- iPhone/Apple: "https://images.unsplash.com/photo-1592750475338-74b7b21085ab?w=400"
+- Samsung Phone: "https://images.unsplash.com/photo-1610945415295-d9bbf067e59c?w=400"
+- Android Phone: "https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?w=400"
+- Laptop: "https://images.unsplash.com/photo-1496181133206-80ce9b88a853?w=400"
+- MacBook: "https://images.unsplash.com/photo-1517336714731-489689fd1ca8?w=400"
+- TV: "https://images.unsplash.com/photo-1593359677879-a4bb92f829d1?w=400"
+- Medicines/Pills: "https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?w=400"
+- Vitamins: "https://images.unsplash.com/photo-1550572017-edd951aa8f72?w=400"
+- Nike Shoes: "https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=400"
+- Adidas Shoes: "https://images.unsplash.com/photo-1608231387042-66d1773070a5?w=400"
+- Running Shoes: "https://images.unsplash.com/photo-1460353581641-37baddab0fa2?w=400"
+- Car: "https://images.unsplash.com/photo-1494976388531-d1058494cdd8?w=400"
+- Motorcycle: "https://images.unsplash.com/photo-1558981403-c5f9899a28bc?w=400"
+- Scooter: "https://images.unsplash.com/photo-1558980664-769d59546b3d?w=400"
+
+Your response MUST be valid JSON:
 {
-  "productName": "Full official product name with brand and model",
+  "productName": "Full product name with brand, model, weight/size",
   "category": "category",
-  "currentPriceINR": number (ACCURATE current retail price),
-  "currentPriceUSD": number (INR/83),
-  "priceHistory": [
-    {"month": "Feb 2025", "priceINR": number, "priceUSD": number},
-    {"month": "Mar 2025", "priceINR": number, "priceUSD": number},
-    ... (12 months ending at current month Jan 2026)
-  ],
-  "predictedPrices": [
-    {"month": "Feb 2026", "priceINR": number, "priceUSD": number},
-    {"month": "Mar 2026", "priceINR": number, "priceUSD": number},
-    ... (6 months of predictions)
-  ],
+  "currentPriceINR": number (from price database above),
+  "currentPriceUSD": number (INR / 83.5),
+  "priceHistory": [12 months: Feb 2025 to Jan 2026],
+  "predictedPrices": [6 months: Feb 2026 to Jul 2026],
   "priceAnalysis": {
     "trend": "increasing" | "decreasing" | "stable",
-    "percentChange": number (realistic 1-15% range typically),
-    "bestTimeToBuy": "specific month and reason",
-    "recommendation": "actionable advice based on trend"
+    "percentChange": number (1-20%),
+    "bestTimeToBuy": "month + reason",
+    "recommendation": "clear buy/wait/avoid advice"
   },
   "specifications": {
-    "brand": "actual brand name",
-    "model": "actual model number/name",
-    "description": "detailed 2-3 sentence description with key features",
-    "imageUrl": "working product image URL from unsplash or similar"
+    "brand": "brand name",
+    "model": "model/variant",
+    "description": "2 sentences with key features",
+    "imageUrl": "EXACT URL from database above matching product type"
   }
 }
 
-Generate realistic price fluctuations: sales in Oct-Nov (Diwali/Black Friday), slight increases in new year.`;
+PRICE PATTERNS: Lower prices in Oct-Nov (festivals), stable Dec-Jan, slight rise Feb-Mar for groceries.`;
 
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
