@@ -1,6 +1,6 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useSearchParams, useNavigate } from "react-router-dom";
-import { Search as SearchIcon, Loader2, TrendingUp, TrendingDown, Heart, Bell, Plus } from "lucide-react";
+import { Search as SearchIcon, Loader2, TrendingUp, TrendingDown, Heart, Bell, Camera, X } from "lucide-react";
 import { Header } from "@/components/Header";
 import { CategoryNav } from "@/components/CategoryNav";
 import { PriceChart } from "@/components/PriceChart";
@@ -15,6 +15,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { categories } from "@/lib/categories";
 import { ProductPriceData } from "@/lib/types";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 
 const Search = () => {
   const [searchParams] = useSearchParams();
@@ -24,9 +25,92 @@ const Search = () => {
   const [selectedCategory, setSelectedCategory] = useState("electronics");
   const [isLoading, setIsLoading] = useState(false);
   const [productData, setProductData] = useState<ProductPriceData | null>(null);
+  const [showCamera, setShowCamera] = useState(false);
+  const [capturedImage, setCapturedImage] = useState<string | null>(null);
+  const [isAnalyzingImage, setIsAnalyzingImage] = useState(false);
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const streamRef = useRef<MediaStream | null>(null);
   const { formatPrice } = useCurrency();
   const { toast } = useToast();
   const { user } = useAuth();
+
+  const startCamera = async () => {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ 
+        video: { facingMode: "environment" } 
+      });
+      streamRef.current = stream;
+      if (videoRef.current) {
+        videoRef.current.srcObject = stream;
+      }
+      setShowCamera(true);
+    } catch (error) {
+      toast({
+        title: "Camera Error",
+        description: "Unable to access camera. Please check permissions.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const stopCamera = () => {
+    if (streamRef.current) {
+      streamRef.current.getTracks().forEach(track => track.stop());
+      streamRef.current = null;
+    }
+    setShowCamera(false);
+    setCapturedImage(null);
+  };
+
+  const capturePhoto = () => {
+    if (videoRef.current) {
+      const canvas = document.createElement("canvas");
+      canvas.width = videoRef.current.videoWidth;
+      canvas.height = videoRef.current.videoHeight;
+      const ctx = canvas.getContext("2d");
+      if (ctx) {
+        ctx.drawImage(videoRef.current, 0, 0);
+        const imageData = canvas.toDataURL("image/jpeg", 0.8);
+        setCapturedImage(imageData);
+        analyzeImage(imageData);
+      }
+    }
+  };
+
+  const analyzeImage = async (imageData: string) => {
+    setIsAnalyzingImage(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("ai-image-search", {
+        body: { image: imageData },
+      });
+
+      if (error) throw error;
+
+      if (data?.productName) {
+        setSearchQuery(data.productName);
+        stopCamera();
+        handleSearch(data.productName);
+        toast({
+          title: "Product Identified",
+          description: `Found: ${data.productName}`,
+        });
+      } else {
+        toast({
+          title: "Could not identify product",
+          description: "Please try again with a clearer image.",
+          variant: "destructive",
+        });
+      }
+    } catch (error) {
+      toast({
+        title: "Analysis Failed",
+        description: "Unable to analyze image. Try text search instead.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsAnalyzingImage(false);
+    }
+  };
 
   useEffect(() => {
     if (query) {
@@ -207,6 +291,10 @@ const Search = () => {
               onKeyDown={(e) => e.key === "Enter" && handleSearch()}
             />
           </div>
+          <Button variant="outline" onClick={startCamera} className="md:w-auto">
+            <Camera className="h-4 w-4 mr-2" />
+            Camera
+          </Button>
           <Select value={selectedCategory} onValueChange={setSelectedCategory}>
             <SelectTrigger className="w-full md:w-48">
               <SelectValue placeholder="Category" />
@@ -223,6 +311,54 @@ const Search = () => {
             {isLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : "Search"}
           </Button>
         </div>
+
+        {/* Camera Dialog */}
+        <Dialog open={showCamera} onOpenChange={(open) => !open && stopCamera()}>
+          <DialogContent className="max-w-lg">
+            <DialogHeader>
+              <DialogTitle className="flex items-center justify-between">
+                <span>Scan Product</span>
+                <Button variant="ghost" size="icon" onClick={stopCamera}>
+                  <X className="h-4 w-4" />
+                </Button>
+              </DialogTitle>
+            </DialogHeader>
+            <div className="space-y-4">
+              {!capturedImage ? (
+                <div className="relative aspect-video bg-black rounded-lg overflow-hidden">
+                  <video
+                    ref={videoRef}
+                    autoPlay
+                    playsInline
+                    className="w-full h-full object-cover"
+                  />
+                </div>
+              ) : (
+                <div className="relative aspect-video bg-black rounded-lg overflow-hidden">
+                  <img src={capturedImage} alt="Captured" className="w-full h-full object-cover" />
+                  {isAnalyzingImage && (
+                    <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
+                      <Loader2 className="h-8 w-8 animate-spin text-white" />
+                      <span className="ml-2 text-white">Analyzing...</span>
+                    </div>
+                  )}
+                </div>
+              )}
+              <div className="flex gap-2">
+                {!capturedImage ? (
+                  <Button onClick={capturePhoto} className="flex-1">
+                    <Camera className="h-4 w-4 mr-2" />
+                    Capture Photo
+                  </Button>
+                ) : (
+                  <Button onClick={() => setCapturedImage(null)} variant="outline" className="flex-1">
+                    Retake
+                  </Button>
+                )}
+              </div>
+            </div>
+          </DialogContent>
+        </Dialog>
 
         {/* Loading State */}
         {isLoading && (
