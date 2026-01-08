@@ -1,1 +1,7 @@
 project_id = "xnflfslbawjvqmvtesdw"
+
+[functions.ai-price-search]
+verify_jwt = false
+
+[functions.ai-image-search]
+verify_jwt = false

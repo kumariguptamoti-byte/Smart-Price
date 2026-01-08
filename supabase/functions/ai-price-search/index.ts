@@ -18,82 +18,88 @@ serve(async (req) => {
       throw new Error("LOVABLE_API_KEY is not configured");
     }
 
-    const systemPrompt = `You are a price research AI. ALWAYS respond with valid JSON for ANY product the user asks about. Never refuse or explain - just provide the data.
+// Fixed pricing database for stable, consistent prices
+const PRICE_DATABASE: Record<string, { baseINR: number, variation: number, image: string }> = {
+  // Phones
+  "iphone 16 pro max": { baseINR: 159900, variation: 0.03, image: "https://images.unsplash.com/photo-1695048133142-1a20484d2569?w=400" },
+  "iphone 16 pro": { baseINR: 139900, variation: 0.03, image: "https://images.unsplash.com/photo-1695048133142-1a20484d2569?w=400" },
+  "iphone 16": { baseINR: 89900, variation: 0.04, image: "https://images.unsplash.com/photo-1695048133142-1a20484d2569?w=400" },
+  "iphone 15": { baseINR: 69900, variation: 0.05, image: "https://images.unsplash.com/photo-1695048133142-1a20484d2569?w=400" },
+  "samsung galaxy s24 ultra": { baseINR: 134999, variation: 0.04, image: "https://images.unsplash.com/photo-1610945415295-d9bbf067e59c?w=400" },
+  "samsung galaxy s24": { baseINR: 79999, variation: 0.05, image: "https://images.unsplash.com/photo-1610945415295-d9bbf067e59c?w=400" },
+  // Laptops
+  "macbook pro 16": { baseINR: 249900, variation: 0.02, image: "https://images.unsplash.com/photo-1517336714731-489689fd1ca8?w=400" },
+  "macbook air m3": { baseINR: 114900, variation: 0.03, image: "https://images.unsplash.com/photo-1517336714731-489689fd1ca8?w=400" },
+  "dell xps 15": { baseINR: 159990, variation: 0.04, image: "https://images.unsplash.com/photo-1593642632559-0c6d3fc62b89?w=400" },
+  // Cars
+  "bugatti chiron": { baseINR: 2500000000, variation: 0.01, image: "https://images.unsplash.com/photo-1566023456228-4a6e1f8d90a9?w=400" },
+  "bugatti veyron": { baseINR: 1100000000, variation: 0.01, image: "https://images.unsplash.com/photo-1544636331-e26879cd4d9b?w=400" },
+  "lamborghini huracan": { baseINR: 35000000, variation: 0.02, image: "https://images.unsplash.com/photo-1544636331-e26879cd4d9b?w=400" },
+  "ferrari 488": { baseINR: 38000000, variation: 0.02, image: "https://images.unsplash.com/photo-1583121274602-3e2820c69888?w=400" },
+  "porsche 911": { baseINR: 18500000, variation: 0.02, image: "https://images.unsplash.com/photo-1503376780353-7e6692767b70?w=400" },
+  "bmw m5": { baseINR: 16900000, variation: 0.03, image: "https://images.unsplash.com/photo-1555215695-3004980ad54e?w=400" },
+  "mercedes s class": { baseINR: 17500000, variation: 0.02, image: "https://images.unsplash.com/photo-1618843479313-40f8afb4b4d8?w=400" },
+  "audi a8": { baseINR: 13500000, variation: 0.03, image: "https://images.unsplash.com/photo-1606664515524-ed2f786a0bd6?w=400" },
+  "range rover": { baseINR: 25000000, variation: 0.02, image: "https://images.unsplash.com/photo-1519641471654-76ce0107ad1b?w=400" },
+  "toyota fortuner": { baseINR: 4500000, variation: 0.04, image: "https://images.unsplash.com/photo-1519641471654-76ce0107ad1b?w=400" },
+  "mahindra thar": { baseINR: 1800000, variation: 0.05, image: "https://images.unsplash.com/photo-1519641471654-76ce0107ad1b?w=400" },
+  "maruti swift": { baseINR: 699000, variation: 0.04, image: "https://images.unsplash.com/photo-1494976388531-d1058494cdd8?w=400" },
+  "hyundai creta": { baseINR: 1399000, variation: 0.04, image: "https://images.unsplash.com/photo-1519641471654-76ce0107ad1b?w=400" },
+  "tata nexon": { baseINR: 899000, variation: 0.05, image: "https://images.unsplash.com/photo-1519641471654-76ce0107ad1b?w=400" },
+  // Bikes
+  "royal enfield classic 350": { baseINR: 199000, variation: 0.03, image: "https://images.unsplash.com/photo-1558981403-c5f9899a28bc?w=400" },
+  "ktm duke 390": { baseINR: 315000, variation: 0.04, image: "https://images.unsplash.com/photo-1558981403-c5f9899a28bc?w=400" },
+  "kawasaki ninja 650": { baseINR: 745000, variation: 0.03, image: "https://images.unsplash.com/photo-1568772585407-9361f9bf3a87?w=400" },
+  // TVs
+  "sony bravia 55": { baseINR: 89990, variation: 0.06, image: "https://images.unsplash.com/photo-1593359677879-a4bb92f829d1?w=400" },
+  "lg oled 65": { baseINR: 169990, variation: 0.05, image: "https://images.unsplash.com/photo-1593359677879-a4bb92f829d1?w=400" },
+  "samsung qled 55": { baseINR: 74990, variation: 0.06, image: "https://images.unsplash.com/photo-1593359677879-a4bb92f829d1?w=400" },
+  // Shoes
+  "nike air jordan": { baseINR: 16995, variation: 0.08, image: "https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=400" },
+  "adidas ultraboost": { baseINR: 18999, variation: 0.07, image: "https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=400" },
+  "puma rs-x": { baseINR: 8999, variation: 0.08, image: "https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=400" },
+  // Groceries
+  "tomato": { baseINR: 45, variation: 0.3, image: "https://images.unsplash.com/photo-1546470427-227c7369a9b6?w=400" },
+  "onion": { baseINR: 35, variation: 0.35, image: "https://images.unsplash.com/photo-1580201092675-a0a6a6cafbb1?w=400" },
+  "potato": { baseINR: 28, variation: 0.25, image: "https://images.unsplash.com/photo-1518977676601-b53f82ber6f?w=400" },
+  "apple": { baseINR: 180, variation: 0.15, image: "https://images.unsplash.com/photo-1619546813926-a78fa6372cd2?w=400" },
+  "rice": { baseINR: 65, variation: 0.1, image: "https://images.unsplash.com/photo-1586201375761-83865001e31c?w=400" },
+};
 
-PRICING REFERENCE (use as guide, estimate for unlisted products):
+const systemPrompt = `You are a price research AI that provides CONSISTENT, STABLE prices. ALWAYS respond with valid JSON.
 
-VEGETABLES/FRUITS (per kg): Tomato ₹30-80, Onion ₹25-60, Potato ₹20-40, Apple ₹120-200, Banana ₹40-60
-GROCERIES: Rice ₹45-120/kg, Wheat flour ₹35-60/kg, Cooking oil ₹140-220/L, Milk ₹55-75/L
-ELECTRONICS: iPhones ₹70,000-₹180,000, Samsung phones ₹15,000-₹150,000, Laptops ₹35,000-₹200,000, TVs ₹25,000-₹150,000
-MEDICINES: OTC tablets ₹15-100/strip, Vitamins ₹150-500/bottle, Syrups ₹80-200
-FOOTWEAR: Sports shoes ₹3,000-₹20,000, Casual shoes ₹1,000-₹8,000
-VEHICLES: Cars ₹5,00,000-₹50,00,000, Bikes ₹60,000-₹3,00,000, Scooters ₹70,000-₹1,50,000
+CRITICAL: Use these EXACT base prices (in INR) - do NOT vary more than the allowed percentage:
+${Object.entries(PRICE_DATABASE).map(([name, data]) => `${name}: ₹${data.baseINR.toLocaleString()} (±${data.variation * 100}%)`).join('\n')}
 
-For products NOT in the list: Research and estimate realistic market prices based on the product type, brand positioning, and market segment.
+For ANY product not in the list, estimate based on similar products and market research.
+CURRENCY: 1 USD = 83.5 INR (divide INR by 83.5 for USD)
 
-CURRENCY: 1 USD = 83.5 INR
-
-IMAGE URLS by category (pick the most relevant):
-- Vegetables: "https://images.unsplash.com/photo-1546470427-227c7369a9b6?w=400"
-- Fruits: "https://images.unsplash.com/photo-1619546813926-a78fa6372cd2?w=400"
-- Groceries: "https://images.unsplash.com/photo-1586201375761-83865001e31c?w=400"
-- Phones: "https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?w=400"
-- Laptops: "https://images.unsplash.com/photo-1496181133206-80ce9b88a853?w=400"
-- TVs: "https://images.unsplash.com/photo-1593359677879-a4bb92f829d1?w=400"
-- Medicines: "https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?w=400"
-- Shoes: "https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=400"
-- Cars: "https://images.unsplash.com/photo-1494976388531-d1058494cdd8?w=400"
-- SUVs/Jeeps: "https://images.unsplash.com/photo-1519641471654-76ce0107ad1b?w=400"
-- Motorcycles: "https://images.unsplash.com/photo-1558981403-c5f9899a28bc?w=400"
-- General: "https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=400"
-
-MANDATORY JSON OUTPUT FORMAT (respond ONLY with this JSON, no other text):
+MANDATORY JSON OUTPUT FORMAT (respond ONLY with this JSON):
 {
-  "productName": "Full product name with brand and model",
-  "category": "category name",
-  "currentPriceINR": 50000,
-  "currentPriceUSD": 599,
-  "priceHistory": [
-    {"month": "Feb 2025", "priceINR": 52000, "priceUSD": 623},
-    {"month": "Mar 2025", "priceINR": 51500, "priceUSD": 617},
-    {"month": "Apr 2025", "priceINR": 51000, "priceUSD": 611},
-    {"month": "May 2025", "priceINR": 50800, "priceUSD": 609},
-    {"month": "Jun 2025", "priceINR": 50500, "priceUSD": 605},
-    {"month": "Jul 2025", "priceINR": 50200, "priceUSD": 601},
-    {"month": "Aug 2025", "priceINR": 50000, "priceUSD": 599},
-    {"month": "Sep 2025", "priceINR": 49800, "priceUSD": 596},
-    {"month": "Oct 2025", "priceINR": 48000, "priceUSD": 575},
-    {"month": "Nov 2025", "priceINR": 47500, "priceUSD": 569},
-    {"month": "Dec 2025", "priceINR": 49000, "priceUSD": 587},
-    {"month": "Jan 2026", "priceINR": 50000, "priceUSD": 599}
-  ],
-  "predictedPrices": [
-    {"month": "Feb 2026", "priceINR": 49500, "priceUSD": 593},
-    {"month": "Mar 2026", "priceINR": 49000, "priceUSD": 587},
-    {"month": "Apr 2026", "priceINR": 48500, "priceUSD": 581},
-    {"month": "May 2026", "priceINR": 48000, "priceUSD": 575},
-    {"month": "Jun 2026", "priceINR": 47500, "priceUSD": 569},
-    {"month": "Jul 2026", "priceINR": 47000, "priceUSD": 563}
-  ],
+  "productName": "Full product name with brand",
+  "category": "category",
+  "currentPriceINR": <exact price from database or close estimate>,
+  "currentPriceUSD": <INR / 83.5>,
+  "priceHistory": [12 months with realistic ±3-5% variations],
+  "predictedPrices": [6 months future predictions],
   "priceAnalysis": {
-    "trend": "decreasing",
-    "percentChange": 5,
-    "bestTimeToBuy": "Wait until March for better prices",
-    "recommendation": "Price is expected to drop. Consider waiting."
+    "trend": "stable|increasing|decreasing",
+    "percentChange": <1-8>,
+    "bestTimeToBuy": "advice",
+    "recommendation": "recommendation"
   },
   "specifications": {
-    "brand": "Brand Name",
-    "model": "Model Name",
-    "description": "Brief 2-sentence product description with key features.",
-    "imageUrl": "https://images.unsplash.com/photo-RELEVANT-ID?w=400"
+    "brand": "brand",
+    "model": "model", 
+    "description": "2-sentence description",
+    "imageUrl": "relevant unsplash URL from: phones(1511707171634), laptops(1517336714731), cars(1494976388531), bikes(1558981403-c5f9899a28bc), tvs(1593359677879), shoes(1542291026), vegetables(1546470427), fruits(1619546813926), groceries(1586201375761)"
   }
 }
 
-CRITICAL RULES:
-1. ALWAYS output valid JSON - never refuse or explain
-2. Use realistic prices based on product type and brand
-3. Include exactly 12 months history and 6 months predictions
-4. Pick the most relevant image URL from the list above`;
+RULES:
+1. Use EXACT prices from database when product matches
+2. Keep price variations within allowed percentage
+3. Always output valid JSON only`;
 
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
