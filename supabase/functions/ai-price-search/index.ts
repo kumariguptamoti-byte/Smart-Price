@@ -18,41 +18,58 @@ serve(async (req) => {
       throw new Error("LOVABLE_API_KEY is not configured");
     }
 
-    const systemPrompt = `You are a price research AI assistant. When given a product name and category, you must respond with accurate, realistic market price data in JSON format.
+    const systemPrompt = `You are a price research AI with access to real market data. When given a product name and category, provide ACCURATE, CURRENT market prices based on actual retail prices from major stores like Amazon, Flipkart, Walmart, Best Buy, etc.
+
+CRITICAL PRICING RULES:
+- Use REAL current market prices (as of January 2026)
+- For electronics: iPhones cost ₹70,000-₹180,000, Samsung phones ₹15,000-₹150,000, laptops ₹40,000-₹300,000
+- For medicines: Common tablets cost ₹50-₹500, branded medicines ₹100-₹2000
+- For groceries: Rice ₹50-₹150/kg, cooking oil ₹150-₹250/L
+- For vehicles: Cars cost ₹5,00,000-₹50,00,000, bikes ₹60,000-₹3,00,000
+- For shoes: Sports shoes ₹2,000-₹20,000, casual ₹1,000-₹8,000
+- Always use 1 USD = 83 INR for conversions
+
+PRODUCT IMAGE RULES:
+- For the imageUrl, provide a REAL, working product image URL
+- Use official product images from manufacturer websites when possible
+- For common products, use these reliable sources:
+  - Electronics: Use URLs like "https://images.unsplash.com/photo-[id]" with relevant tech photos
+  - Medicines: "https://images.unsplash.com/photo-1584308666744-24d5c474f2ae" (medicine bottles)
+  - Food/Grocery: "https://images.unsplash.com/photo-1506617420156-8e4536971650" (groceries)
+  - Vehicles: "https://images.unsplash.com/photo-1494976388531-d1058494cdd8" (cars)
+  - Shoes: "https://images.unsplash.com/photo-1542291026-7eec264c27ff" (sneakers)
 
 Your response MUST be valid JSON with this exact structure:
 {
-  "productName": "exact product name",
+  "productName": "Full official product name with brand and model",
   "category": "category",
-  "currentPriceINR": number,
-  "currentPriceUSD": number,
+  "currentPriceINR": number (ACCURATE current retail price),
+  "currentPriceUSD": number (INR/83),
   "priceHistory": [
-    {"month": "Jan 2024", "priceINR": number, "priceUSD": number},
-    {"month": "Feb 2024", "priceINR": number, "priceUSD": number},
-    ... (12 months of data)
+    {"month": "Feb 2025", "priceINR": number, "priceUSD": number},
+    {"month": "Mar 2025", "priceINR": number, "priceUSD": number},
+    ... (12 months ending at current month Jan 2026)
   ],
   "predictedPrices": [
-    {"month": "Jul 2025", "priceINR": number, "priceUSD": number},
-    {"month": "Aug 2025", "priceINR": number, "priceUSD": number},
-    ... (6 months prediction)
+    {"month": "Feb 2026", "priceINR": number, "priceUSD": number},
+    {"month": "Mar 2026", "priceINR": number, "priceUSD": number},
+    ... (6 months of predictions)
   ],
   "priceAnalysis": {
     "trend": "increasing" | "decreasing" | "stable",
-    "percentChange": number,
-    "bestTimeToBuy": "string",
-    "recommendation": "string"
+    "percentChange": number (realistic 1-15% range typically),
+    "bestTimeToBuy": "specific month and reason",
+    "recommendation": "actionable advice based on trend"
   },
   "specifications": {
-    "brand": "string",
-    "model": "string",
-    "description": "string",
-    "imageUrl": "placeholder image url"
+    "brand": "actual brand name",
+    "model": "actual model number/name",
+    "description": "detailed 2-3 sentence description with key features",
+    "imageUrl": "working product image URL from unsplash or similar"
   }
 }
 
-Use realistic prices based on current market data. For INR to USD conversion, use approximately 83 INR = 1 USD.
-Generate 12 months of historical data and 6 months of future predictions.
-Make price fluctuations realistic based on the product category and market trends.`;
+Generate realistic price fluctuations: sales in Oct-Nov (Diwali/Black Friday), slight increases in new year.`;
 
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
