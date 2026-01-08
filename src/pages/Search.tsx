@@ -58,16 +58,38 @@ const Search = () => {
         return;
       }
 
-      setProductData(data);
+      // Validate and fix the data structure
+      const validatedData: ProductPriceData = {
+        productName: data.productName || searchTerm,
+        category: data.category || selectedCategory,
+        currentPriceINR: data.currentPriceINR || 0,
+        currentPriceUSD: data.currentPriceUSD || 0,
+        priceHistory: Array.isArray(data.priceHistory) ? data.priceHistory : [],
+        predictedPrices: Array.isArray(data.predictedPrices) ? data.predictedPrices : [],
+        priceAnalysis: {
+          trend: data.priceAnalysis?.trend || "stable",
+          percentChange: data.priceAnalysis?.percentChange || 0,
+          bestTimeToBuy: data.priceAnalysis?.bestTimeToBuy || "Now is a good time",
+          recommendation: data.priceAnalysis?.recommendation || "Check back for updates",
+        },
+        specifications: {
+          brand: data.specifications?.brand || "",
+          model: data.specifications?.model || "",
+          description: data.specifications?.description || "",
+          imageUrl: data.specifications?.imageUrl || "/placeholder.svg",
+        },
+      };
+
+      setProductData(validatedData);
 
       // Save to search history if logged in
       if (user) {
-        await supabase.from("search_history").insert({
+        await supabase.from("search_history").insert([{
           user_id: user.id,
-          product_name: data.productName,
-          product_category: data.category,
-          search_data: data,
-        });
+          product_name: validatedData.productName,
+          product_category: validatedData.category,
+          search_data: JSON.parse(JSON.stringify(validatedData)),
+        }]);
       }
     } catch (error) {
       console.error("Search error:", error);
