@@ -4,8 +4,24 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Price Tracker - Compare Prices Across India</title>
-    <meta name="description" content="Track and compare product prices across India. Get price alerts, view price history, and find the best deals." />
+    <meta
+      name="description"
+      content="Track and compare product prices across India. Get price alerts, view price history, and find the best deals."
+    />
+    <link rel="canonical" href="/" />
     <link rel="icon" type="image/x-icon" href="/favicon.ico" />
+
+    <script>
+      // Restore deep-links after the GitHub Pages 404 redirect.
+      (function () {
+        var redirect = sessionStorage.getItem("spa:redirect");
+        if (!redirect) return;
+        sessionStorage.removeItem("spa:redirect");
+        if (redirect !== window.location.pathname + window.location.search + window.location.hash) {
+          history.replaceState(null, "", redirect);
+        }
+      })();
+    </script>
   </head>
   <body>
     <div id="root"></div>

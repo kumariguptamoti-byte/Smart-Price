@@ -11,11 +11,21 @@
   </head>
   <body>
     <script>
-      // GitHub Pages SPA fallback: redirect unknown routes to the app entry
-      window.location.replace(
-        window.location.origin +
-          window.location.pathname.replace(/\/[^/]*$/, "/")
-      );
+      // GitHub Pages SPA fallback:
+      // 1) Save the requested path in sessionStorage
+      // 2) Redirect to the app root so assets load correctly
+      (function () {
+        var path = window.location.pathname;
+        var search = window.location.search || "";
+        var hash = window.location.hash || "";
+
+        var segments = path.split("/").filter(Boolean);
+        var base = segments.length ? "/" + segments[0] + "/" : "/";
+        var rest = segments.length > 1 ? "/" + segments.slice(1).join("/") : "/";
+
+        sessionStorage.setItem("spa:redirect", base + (rest === "/" ? "" : rest) + search + hash);
+        window.location.replace(window.location.origin + base);
+      })();
     </script>
   </body>
 </html>
