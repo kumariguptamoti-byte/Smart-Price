@@ -18,6 +18,21 @@ import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
 
+const routerBasename = (() => {
+  const envBase = import.meta.env.BASE_URL;
+
+  // In dev this is usually "/".
+  if (envBase && envBase !== "./") {
+    // React Router basename works best without a trailing slash.
+    return envBase.endsWith("/") ? envBase.slice(0, -1) : envBase;
+  }
+
+  // GitHub Pages + Vite often uses base "./". In that case, infer the repo name
+  // from the current path so routes work under "/<repo>/...".
+  const firstSegment = window.location.pathname.split("/").filter(Boolean)[0];
+  return firstSegment ? `/${firstSegment}` : "/";
+})();
+
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <AuthProvider>
@@ -25,7 +40,7 @@ const App = () => (
         <TooltipProvider>
           <Toaster />
           <Sonner />
-          <BrowserRouter basename={import.meta.env.BASE_URL}>
+          <BrowserRouter basename={routerBasename}>
             <Routes>
               <Route path="/" element={<Index />} />
               <Route path="/auth" element={<Auth />} />
