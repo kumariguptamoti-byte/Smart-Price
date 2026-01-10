@@ -27,11 +27,17 @@ const routerBasename = (() => {
     return envBase.endsWith("/") ? envBase.slice(0, -1) : envBase;
   }
 
+  // If hosted on a custom domain, routes live at "/".
+  // Only infer repo-name basenames on *.github.io hosts.
+  const isGitHubPagesHost = window.location.hostname.endsWith("github.io");
+  if (!isGitHubPagesHost) return "/";
+
   // GitHub Pages + Vite often uses base "./". In that case, infer the repo name
   // from the current path so routes work under "/<repo>/...".
   const firstSegment = window.location.pathname.split("/").filter(Boolean)[0];
   return firstSegment ? `/${firstSegment}` : "/";
 })();
+
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
