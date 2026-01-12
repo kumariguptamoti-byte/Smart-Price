@@ -14,10 +14,13 @@ export const CurrencyProvider = ({ children }: { children: ReactNode }) => {
   const [currency, setCurrency] = useState<Currency>("INR");
 
   const formatPrice = (priceINR: number, priceUSD: number) => {
+    const safeINR = Number.isFinite(priceINR) ? priceINR : 0;
+    const safeUSD = Number.isFinite(priceUSD) ? priceUSD : 0;
+
     if (currency === "INR") {
-      return `₹${priceINR.toLocaleString("en-IN")}`;
+      return `₹${safeINR.toLocaleString("en-IN")}`;
     }
-    return `$${priceUSD.toLocaleString("en-US")}`;
+    return `$${safeUSD.toLocaleString("en-US")}`;
   };
 
   const getPrice = (priceINR: number, priceUSD: number) => {

@@ -14,7 +14,7 @@ import { useCurrency } from "@/hooks/useCurrency";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { categories } from "@/lib/categories";
-import { ProductPriceData } from "@/lib/types";
+import { ProductPriceData, PricePoint } from "@/lib/types";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 
 const Search = () => {
@@ -142,14 +142,49 @@ const Search = () => {
         return;
       }
 
+      const toPricePoints = (values: unknown, fallbackMonths: string[]): PricePoint[] => {
+        if (!Array.isArray(values)) return [];
+
+        // If AI returns [number, number, ...]
+        if (values.length > 0 && typeof values[0] === "number") {
+          return (values as number[]).map((priceINR, idx) => {
+            const month = fallbackMonths[idx] ?? `M${idx + 1}`;
+            const safeINR = Number.isFinite(priceINR) ? priceINR : 0;
+            return {
+              month,
+              priceINR: safeINR,
+              priceUSD: Math.round((safeINR / 83.5) * 100) / 100,
+            };
+          });
+        }
+
+        // If AI returns [{month, priceINR, priceUSD}, ...]
+        return (values as any[])
+          .filter(Boolean)
+          .map((p, idx) => {
+            const safeINR = Number.isFinite(p?.priceINR) ? p.priceINR : 0;
+            const safeUSD = Number.isFinite(p?.priceUSD)
+              ? p.priceUSD
+              : Math.round((safeINR / 83.5) * 100) / 100;
+            return {
+              month: String(p?.month ?? fallbackMonths[idx] ?? `M${idx + 1}`),
+              priceINR: safeINR,
+              priceUSD: safeUSD,
+            } as PricePoint;
+          });
+      };
+
+      const last12Months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+      const next6Months = ["+1m", "+2m", "+3m", "+4m", "+5m", "+6m"];
+
       // Validate and fix the data structure
       const validatedData: ProductPriceData = {
         productName: data.productName || searchTerm,
         category: data.category || selectedCategory,
-        currentPriceINR: data.currentPriceINR || 0,
-        currentPriceUSD: data.currentPriceUSD || 0,
-        priceHistory: Array.isArray(data.priceHistory) ? data.priceHistory : [],
-        predictedPrices: Array.isArray(data.predictedPrices) ? data.predictedPrices : [],
+        currentPriceINR: Number.isFinite(data.currentPriceINR) ? data.currentPriceINR : 0,
+        currentPriceUSD: Number.isFinite(data.currentPriceUSD) ? data.currentPriceUSD : 0,
+        priceHistory: toPricePoints(data.priceHistory, last12Months),
+        predictedPrices: toPricePoints(data.predictedPrices, next6Months),
         priceAnalysis: {
           trend: data.priceAnalysis?.trend || "stable",
           percentChange: data.priceAnalysis?.percentChange || 0,
