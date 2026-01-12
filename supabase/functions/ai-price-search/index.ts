@@ -156,7 +156,46 @@ RULES:
       throw new Error("Failed to parse price data");
     }
 
-    return new Response(JSON.stringify(priceData), {
+    const MONTHS_12 = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+    const NEXT_6 = ["+1m", "+2m", "+3m", "+4m", "+5m", "+6m"];
+
+    const toPoints = (values: unknown, labels: string[]) => {
+      if (!Array.isArray(values)) return [];
+      if (values.length > 0 && typeof values[0] === "number") {
+        return (values as number[]).map((priceINR, idx) => {
+          const safeINR = Number.isFinite(priceINR) ? priceINR : 0;
+          return {
+            month: labels[idx] ?? `M${idx + 1}`,
+            priceINR: safeINR,
+            priceUSD: Math.round((safeINR / 83.5) * 100) / 100,
+          };
+        });
+      }
+      return (values as any[])
+        .filter(Boolean)
+        .map((p, idx) => {
+          const safeINR = Number.isFinite(p?.priceINR) ? p.priceINR : 0;
+          const safeUSD = Number.isFinite(p?.priceUSD)
+            ? p.priceUSD
+            : Math.round((safeINR / 83.5) * 100) / 100;
+          return {
+            month: String(p?.month ?? labels[idx] ?? `M${idx + 1}`),
+            priceINR: safeINR,
+            priceUSD: safeUSD,
+          };
+        });
+    };
+
+    // Normalize output so the frontend never crashes.
+    const normalized = {
+      ...priceData,
+      currentPriceINR: Number.isFinite(priceData?.currentPriceINR) ? priceData.currentPriceINR : 0,
+      currentPriceUSD: Number.isFinite(priceData?.currentPriceUSD) ? priceData.currentPriceUSD : 0,
+      priceHistory: toPoints(priceData?.priceHistory, MONTHS_12),
+      predictedPrices: toPoints(priceData?.predictedPrices, NEXT_6),
+    };
+
+    return new Response(JSON.stringify(normalized), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   } catch (error) {
