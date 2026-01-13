@@ -7,8 +7,7 @@ import { componentTagger } from "lovable-tagger";
 // These are PUBLISHABLE keys (safe to expose in client code)
 const SUPABASE_FALLBACKS = {
   // NOTE: URL must be the backend URL, not your GitHub Pages URL.
-  // Keeping empty by default forces correct env configuration in CI.
-  VITE_SUPABASE_URL: "",
+  VITE_SUPABASE_URL: "https://xnflfslbawjvqmvtesdw.supabase.co",
   VITE_SUPABASE_PUBLISHABLE_KEY:
     "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhuZmxmc2xiYXdqdnFtdnRlc2R3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njc3NzczMjQsImV4cCI6MjA4MzM1MzMyNH0.2lwU8pU3RWwxOvHRNgZepUiOhZQN20JIs5ZybuVlcCM",
   VITE_SUPABASE_PROJECT_ID: "xnflfslbawjvqmvtesdw",
