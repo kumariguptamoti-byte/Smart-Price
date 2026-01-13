@@ -8,25 +8,7 @@
       name="description"
       content="Track and compare product prices across India. Get price alerts, view price history, and find the best deals."
     />
-
-    <!-- GitHub Pages: keep these relative so they work under /<repo>/ -->
-    <link rel="canonical" href="./" />
     <link rel="icon" type="image/x-icon" href="./favicon.ico" />
-
-    <script>
-      // Restore deep-links after the GitHub Pages 404 redirect.
-      (function () {
-        var redirect = sessionStorage.getItem("spa:redirect");
-        if (!redirect) return;
-        sessionStorage.removeItem("spa:redirect");
-        if (
-          redirect !==
-          window.location.pathname + window.location.search + window.location.hash
-        ) {
-          history.replaceState(null, "", redirect);
-        }
-      })();
-    </script>
   </head>
   <body>
     <div id="root"></div>
