@@ -14,6 +14,7 @@ import Alerts from "./pages/Alerts";
 import History from "./pages/History";
 import Compare from "./pages/Compare";
 import Category from "./pages/Category";
+import About from "./pages/About";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -36,6 +37,7 @@ const App = () => (
               <Route path="/history" element={<History />} />
               <Route path="/compare" element={<Compare />} />
               <Route path="/category/:categoryId" element={<Category />} />
+              <Route path="/about" element={<About />} />
               <Route path="*" element={<NotFound />} />
             </Routes>
           </HashRouter>

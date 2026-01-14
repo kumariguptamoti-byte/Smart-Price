@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { Search, User, Heart, Bell, Menu, X, TrendingUp } from "lucide-react";
+import { Search, User, Heart, Bell, Menu, X, Sparkles, Zap } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useAuth } from "@/hooks/useAuth";
@@ -28,14 +28,22 @@ export const Header = () => {
   };
 
   return (
-    <header className="sticky top-0 z-50 bg-background border-b border-border shadow-sm">
+    <header className="sticky top-0 z-50 bg-background/95 backdrop-blur-sm border-b border-border shadow-sm">
       <div className="container mx-auto px-4">
         {/* Top Bar */}
         <div className="flex items-center justify-between py-3">
           {/* Logo */}
-          <Link to="/" className="flex items-center gap-2">
-            <TrendingUp className="h-8 w-8 text-primary" />
-            <span className="text-xl font-bold text-foreground">PriceTracker</span>
+          <Link to="/" className="flex items-center gap-2 group">
+            <div className="relative">
+              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-sky-500 via-teal-500 to-green-500 flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform duration-300">
+                <Zap className="h-6 w-6 text-white" />
+              </div>
+              <Sparkles className="absolute -top-1 -right-1 w-4 h-4 text-yellow-500 animate-pulse" />
+            </div>
+            <div className="flex flex-col">
+              <span className="text-xl font-bold gradient-text-cool">CostSeer</span>
+              <span className="text-[10px] text-muted-foreground -mt-1">AI Price Tracker</span>
+            </div>
           </Link>
 
           {/* Search Bar - Desktop */}
@@ -100,6 +108,10 @@ export const Header = () => {
                     </DropdownMenuItem>
                     <DropdownMenuItem asChild>
                       <Link to="/compare">Compare Products</Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem asChild>
+                      <Link to="/about">About</Link>
                     </DropdownMenuItem>
                     <DropdownMenuSeparator />
                     <DropdownMenuItem onClick={signOut}>
