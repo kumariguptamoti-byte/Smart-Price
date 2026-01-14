@@ -5,16 +5,21 @@ import { cva, type VariantProps } from "class-variance-authority";
 import { cn } from "@/lib/utils";
 
 const buttonVariants = cva(
-  "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0",
+  "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-all duration-300 ease-out focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 hover:scale-105 active:scale-95 hover:shadow-lg",
   {
     variants: {
       variant: {
-        default: "bg-primary text-primary-foreground hover:bg-primary/90",
-        destructive: "bg-destructive text-destructive-foreground hover:bg-destructive/90",
-        outline: "border border-input bg-background hover:bg-accent hover:text-accent-foreground",
-        secondary: "bg-secondary text-secondary-foreground hover:bg-secondary/80",
+        default: "bg-primary text-primary-foreground hover:bg-primary/90 shadow-md hover:shadow-primary/25",
+        destructive: "bg-destructive text-destructive-foreground hover:bg-destructive/90 shadow-md hover:shadow-destructive/25",
+        outline: "border-2 border-primary bg-background hover:bg-primary hover:text-primary-foreground",
+        secondary: "bg-secondary text-secondary-foreground hover:bg-secondary/80 shadow-md hover:shadow-secondary/25",
         ghost: "hover:bg-accent hover:text-accent-foreground",
-        link: "text-primary underline-offset-4 hover:underline",
+        link: "text-primary underline-offset-4 hover:underline hover:scale-100",
+        gradient: "bg-gradient-to-r from-pink-500 via-orange-500 to-yellow-500 text-white hover:from-pink-600 hover:via-orange-600 hover:to-yellow-600 shadow-lg hover:shadow-xl",
+        success: "bg-green-500 text-white hover:bg-green-600 shadow-md hover:shadow-green-500/25",
+        warning: "bg-yellow-500 text-white hover:bg-yellow-600 shadow-md hover:shadow-yellow-500/25",
+        pink: "bg-pink-500 text-white hover:bg-pink-600 shadow-md hover:shadow-pink-500/25",
+        orange: "bg-orange-500 text-white hover:bg-orange-600 shadow-md hover:shadow-orange-500/25",
       },
       size: {
         default: "h-10 px-4 py-2",
