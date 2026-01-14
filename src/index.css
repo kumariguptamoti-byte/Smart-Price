@@ -2,7 +2,7 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Vibrant multi-color design system. All colors MUST be HSL. */
+/* Professional vibrant multi-color design system. All colors MUST be HSL. */
 
 @layer base {
   :root {
@@ -15,8 +15,8 @@
     --popover: 0 0% 100%;
     --popover-foreground: 222.2 84% 4.9%;
 
-    /* Pink primary */
-    --primary: 330 81% 60%;
+    /* Sky Blue primary */
+    --primary: 199 89% 48%;
     --primary-foreground: 0 0% 100%;
 
     /* Orange secondary */
@@ -36,30 +36,33 @@
 
     --border: 214.3 31.8% 91.4%;
     --input: 214.3 31.8% 91.4%;
-    --ring: 330 81% 60%;
+    --ring: 199 89% 48%;
 
     --radius: 0.75rem;
 
-    /* Vibrant color palette */
-    --pink: 330 81% 60%;
+    /* Vibrant color palette - Blue based */
+    --sky: 199 89% 48%;
+    --teal: 172 66% 50%;
     --orange: 25 95% 53%;
     --green: 142 76% 36%;
     --yellow: 45 93% 47%;
     --red: 0 84% 60%;
     --purple: 270 60% 60%;
+    --indigo: 234 89% 63%;
 
     /* Gradients */
-    --gradient-primary: linear-gradient(135deg, hsl(330 81% 60%), hsl(25 95% 53%));
-    --gradient-rainbow: linear-gradient(135deg, hsl(330 81% 60%), hsl(25 95% 53%), hsl(45 93% 47%), hsl(142 76% 36%));
+    --gradient-primary: linear-gradient(135deg, hsl(199 89% 48%), hsl(172 66% 50%));
+    --gradient-rainbow: linear-gradient(135deg, hsl(199 89% 48%), hsl(172 66% 50%), hsl(142 76% 36%), hsl(45 93% 47%));
+    --gradient-cool: linear-gradient(135deg, hsl(199 89% 48%), hsl(234 89% 63%));
 
     --sidebar-background: 0 0% 98%;
     --sidebar-foreground: 240 5.3% 26.1%;
-    --sidebar-primary: 330 81% 60%;
+    --sidebar-primary: 199 89% 48%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 25 95% 90%;
-    --sidebar-accent-foreground: 25 95% 30%;
+    --sidebar-accent: 199 89% 95%;
+    --sidebar-accent-foreground: 199 89% 30%;
     --sidebar-border: 220 13% 91%;
-    --sidebar-ring: 330 81% 60%;
+    --sidebar-ring: 199 89% 48%;
   }
 
   .dark {
@@ -72,7 +75,7 @@
     --popover: 222.2 84% 8%;
     --popover-foreground: 210 40% 98%;
 
-    --primary: 330 81% 65%;
+    --primary: 199 89% 55%;
     --primary-foreground: 0 0% 100%;
 
     --secondary: 25 95% 60%;
@@ -89,23 +92,25 @@
 
     --border: 217.2 32.6% 17.5%;
     --input: 217.2 32.6% 17.5%;
-    --ring: 330 81% 65%;
+    --ring: 199 89% 55%;
 
-    --pink: 330 81% 65%;
+    --sky: 199 89% 55%;
+    --teal: 172 66% 55%;
     --orange: 25 95% 60%;
     --green: 142 76% 45%;
     --yellow: 45 93% 55%;
     --red: 0 84% 55%;
     --purple: 270 60% 65%;
+    --indigo: 234 89% 68%;
 
     --sidebar-background: 240 5.9% 10%;
     --sidebar-foreground: 240 4.8% 95.9%;
-    --sidebar-primary: 330 81% 65%;
+    --sidebar-primary: 199 89% 55%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 25 95% 20%;
-    --sidebar-accent-foreground: 25 95% 90%;
+    --sidebar-accent: 199 89% 20%;
+    --sidebar-accent-foreground: 199 89% 90%;
     --sidebar-border: 240 3.7% 15.9%;
-    --sidebar-ring: 330 81% 65%;
+    --sidebar-ring: 199 89% 55%;
   }
 }
 
@@ -117,8 +122,8 @@
   body {
     @apply bg-background text-foreground;
     background-image: 
-      radial-gradient(at 10% 10%, hsl(330 81% 60% / 0.08) 0%, transparent 50%),
-      radial-gradient(at 90% 20%, hsl(25 95% 53% / 0.08) 0%, transparent 50%),
+      radial-gradient(at 10% 10%, hsl(199 89% 48% / 0.08) 0%, transparent 50%),
+      radial-gradient(at 90% 20%, hsl(172 66% 50% / 0.08) 0%, transparent 50%),
       radial-gradient(at 50% 90%, hsl(142 76% 36% / 0.08) 0%, transparent 50%);
     min-height: 100vh;
   }
@@ -134,16 +139,30 @@
   .btn-animated::before {
     content: '';
     @apply absolute inset-0 opacity-0 transition-opacity duration-300;
-    background: linear-gradient(135deg, hsl(330 81% 60% / 0.2), hsl(25 95% 53% / 0.2));
+    background: linear-gradient(135deg, hsl(199 89% 48% / 0.2), hsl(172 66% 50% / 0.2));
   }
 
   .btn-animated:hover::before {
     @apply opacity-100;
   }
 
-  /* Gradient text */
+  /* Gradient text - Cool Blue */
   .gradient-text {
-    background: linear-gradient(135deg, hsl(330 81% 60%), hsl(25 95% 53%), hsl(45 93% 47%));
+    background: linear-gradient(135deg, hsl(199 89% 48%), hsl(172 66% 50%), hsl(142 76% 36%));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .gradient-text-cool {
+    background: linear-gradient(135deg, hsl(199 89% 48%), hsl(234 89% 63%));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .gradient-text-warm {
+    background: linear-gradient(135deg, hsl(25 95% 53%), hsl(45 93% 47%), hsl(0 84% 60%));
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
@@ -167,12 +186,12 @@
     inset: -2px;
     background: linear-gradient(
       90deg,
-      hsl(330 81% 60%),
-      hsl(25 95% 53%),
-      hsl(45 93% 47%),
+      hsl(199 89% 48%),
+      hsl(172 66% 50%),
       hsl(142 76% 36%),
-      hsl(270 60% 60%),
-      hsl(330 81% 60%)
+      hsl(45 93% 47%),
+      hsl(25 95% 53%),
+      hsl(199 89% 48%)
     );
     background-size: 300% 100%;
     border-radius: inherit;
@@ -192,10 +211,10 @@
 
   @keyframes pulse-glow {
     0%, 100% {
-      box-shadow: 0 0 5px hsl(330 81% 60% / 0.5), 0 0 10px hsl(25 95% 53% / 0.3);
+      box-shadow: 0 0 5px hsl(199 89% 48% / 0.5), 0 0 10px hsl(172 66% 50% / 0.3);
     }
     50% {
-      box-shadow: 0 0 20px hsl(330 81% 60% / 0.8), 0 0 30px hsl(25 95% 53% / 0.5);
+      box-shadow: 0 0 20px hsl(199 89% 48% / 0.8), 0 0 30px hsl(172 66% 50% / 0.5);
     }
   }
 
@@ -221,8 +240,11 @@
   }
 
   /* Colorful badges */
-  .badge-pink {
-    @apply bg-pink-500 text-white;
+  .badge-sky {
+    @apply bg-sky-500 text-white;
+  }
+  .badge-teal {
+    @apply bg-teal-500 text-white;
   }
   .badge-orange {
     @apply bg-orange-500 text-white;
