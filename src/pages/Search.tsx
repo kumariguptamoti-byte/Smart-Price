@@ -36,14 +36,27 @@ const Search = () => {
 
   const startCamera = async () => {
     try {
-      const stream = await navigator.mediaDevices.getUserMedia({ 
-        video: { facingMode: "environment" } 
-      });
-      streamRef.current = stream;
-      if (videoRef.current) {
-        videoRef.current.srcObject = stream;
-      }
       setShowCamera(true);
+      // Small delay to ensure dialog is open before accessing camera
+      setTimeout(async () => {
+        try {
+          const stream = await navigator.mediaDevices.getUserMedia({ 
+            video: { facingMode: "environment", width: { ideal: 1280 }, height: { ideal: 720 } } 
+          });
+          streamRef.current = stream;
+          if (videoRef.current) {
+            videoRef.current.srcObject = stream;
+            await videoRef.current.play();
+          }
+        } catch (err) {
+          toast({
+            title: "Camera Error",
+            description: "Unable to access camera. Please check permissions.",
+            variant: "destructive",
+          });
+          setShowCamera(false);
+        }
+      }, 300);
     } catch (error) {
       toast({
         title: "Camera Error",
@@ -63,17 +76,27 @@ const Search = () => {
   };
 
   const capturePhoto = () => {
-    if (videoRef.current) {
+    if (videoRef.current && videoRef.current.videoWidth > 0) {
       const canvas = document.createElement("canvas");
-      canvas.width = videoRef.current.videoWidth;
-      canvas.height = videoRef.current.videoHeight;
+      canvas.width = videoRef.current.videoWidth || 640;
+      canvas.height = videoRef.current.videoHeight || 480;
       const ctx = canvas.getContext("2d");
       if (ctx) {
         ctx.drawImage(videoRef.current, 0, 0);
         const imageData = canvas.toDataURL("image/jpeg", 0.8);
         setCapturedImage(imageData);
+        // Stop camera after capture
+        if (streamRef.current) {
+          streamRef.current.getTracks().forEach(track => track.stop());
+        }
         analyzeImage(imageData);
       }
+    } else {
+      toast({
+        title: "Camera not ready",
+        description: "Please wait for camera to initialize",
+        variant: "destructive",
+      });
     }
   };
 
@@ -313,25 +336,31 @@ const Search = () => {
       <CategoryNav />
 
       <div className="container mx-auto px-4 py-8">
+        {/* Colorful Header */}
+        <div className="text-center mb-8">
+          <h1 className="text-4xl font-bold gradient-text mb-2">Find Best Prices</h1>
+          <p className="text-muted-foreground">Search any product to track prices and get AI predictions</p>
+        </div>
+
         {/* Search Form */}
-        <div className="flex flex-col md:flex-row gap-4 mb-8">
+        <div className="flex flex-col md:flex-row gap-4 mb-8 p-6 bg-gradient-to-r from-pink-50 via-orange-50 to-yellow-50 dark:from-pink-950/20 dark:via-orange-950/20 dark:to-yellow-950/20 rounded-2xl border-2 border-pink-200 dark:border-pink-800">
           <div className="relative flex-1">
-            <SearchIcon className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <SearchIcon className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-pink-500" />
             <Input
               type="text"
               placeholder="Search for any product..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-10"
+              className="pl-10 h-12 text-lg border-2 border-pink-200 dark:border-pink-700 focus:border-pink-500 rounded-xl"
               onKeyDown={(e) => e.key === "Enter" && handleSearch()}
             />
           </div>
-          <Button variant="outline" onClick={startCamera} className="md:w-auto">
-            <Camera className="h-4 w-4 mr-2" />
-            Camera
+          <Button variant="orange" onClick={startCamera} className="md:w-auto h-12 rounded-xl">
+            <Camera className="h-5 w-5 mr-2" />
+            Scan
           </Button>
           <Select value={selectedCategory} onValueChange={setSelectedCategory}>
-            <SelectTrigger className="w-full md:w-48">
+            <SelectTrigger className="w-full md:w-48 h-12 border-2 border-orange-200 dark:border-orange-700 rounded-xl">
               <SelectValue placeholder="Category" />
             </SelectTrigger>
             <SelectContent>
@@ -342,8 +371,8 @@ const Search = () => {
               ))}
             </SelectContent>
           </Select>
-          <Button onClick={() => handleSearch()} disabled={isLoading}>
-            {isLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : "Search"}
+          <Button variant="gradient" onClick={() => handleSearch()} disabled={isLoading} className="h-12 px-8 rounded-xl">
+            {isLoading ? <Loader2 className="h-5 w-5 animate-spin" /> : "Search"}
           </Button>
         </div>
 
@@ -360,34 +389,39 @@ const Search = () => {
             </DialogHeader>
             <div className="space-y-4">
               {!capturedImage ? (
-                <div className="relative aspect-video bg-black rounded-lg overflow-hidden">
+                <div className="relative aspect-video bg-gradient-to-br from-pink-900 to-orange-900 rounded-xl overflow-hidden border-4 border-pink-500">
                   <video
                     ref={videoRef}
                     autoPlay
                     playsInline
+                    muted
                     className="w-full h-full object-cover"
                   />
+                  <div className="absolute inset-0 border-4 border-dashed border-yellow-400/50 m-4 rounded-lg pointer-events-none" />
+                  <p className="absolute bottom-4 left-0 right-0 text-center text-white text-sm bg-black/50 py-2">
+                    Point camera at product
+                  </p>
                 </div>
               ) : (
-                <div className="relative aspect-video bg-black rounded-lg overflow-hidden">
+                <div className="relative aspect-video bg-black rounded-xl overflow-hidden border-4 border-green-500">
                   <img src={capturedImage} alt="Captured" className="w-full h-full object-cover" />
                   {isAnalyzingImage && (
-                    <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
-                      <Loader2 className="h-8 w-8 animate-spin text-white" />
-                      <span className="ml-2 text-white">Analyzing...</span>
+                    <div className="absolute inset-0 bg-gradient-to-br from-pink-500/80 to-orange-500/80 flex flex-col items-center justify-center">
+                      <Loader2 className="h-12 w-12 animate-spin text-white mb-2" />
+                      <span className="text-white font-semibold text-lg">Analyzing with AI...</span>
                     </div>
                   )}
                 </div>
               )}
-              <div className="flex gap-2">
+              <div className="flex gap-3">
                 {!capturedImage ? (
-                  <Button onClick={capturePhoto} className="flex-1">
-                    <Camera className="h-4 w-4 mr-2" />
+                  <Button variant="gradient" onClick={capturePhoto} className="flex-1 h-12 rounded-xl">
+                    <Camera className="h-5 w-5 mr-2" />
                     Capture Photo
                   </Button>
                 ) : (
-                  <Button onClick={() => setCapturedImage(null)} variant="outline" className="flex-1">
-                    Retake
+                  <Button onClick={() => setCapturedImage(null)} variant="orange" className="flex-1 h-12 rounded-xl">
+                    Retake Photo
                   </Button>
                 )}
               </div>
@@ -405,16 +439,17 @@ const Search = () => {
 
         {/* Results */}
         {productData && !isLoading && (
-          <div className="grid md:grid-cols-3 gap-8">
+          <div className="grid md:grid-cols-3 gap-8 animate-fade-in">
             {/* Product Info */}
             <div className="md:col-span-1">
-              <Card>
+              <Card className="card-animated border-2 border-pink-200 dark:border-pink-800 overflow-hidden">
+                <div className="h-2 bg-gradient-to-r from-pink-500 via-orange-500 to-yellow-500" />
                 <CardContent className="p-6">
-                  <div className="aspect-square bg-muted rounded-lg mb-4 flex items-center justify-center overflow-hidden">
+                  <div className="aspect-square bg-gradient-to-br from-pink-50 to-orange-50 dark:from-pink-950/30 dark:to-orange-950/30 rounded-xl mb-4 flex items-center justify-center overflow-hidden border-2 border-orange-200 dark:border-orange-800">
                     <img
                       src={productData.specifications.imageUrl || "/placeholder.svg"}
                       alt={productData.productName}
-                      className="w-full h-full object-cover"
+                      className="w-full h-full object-cover hover:scale-110 transition-transform duration-500"
                       onError={(e) => {
                         (e.target as HTMLImageElement).src = "/placeholder.svg";
                       }}
@@ -423,21 +458,21 @@ const Search = () => {
                   <div className="mb-4">
                     {getTrendBadge()}
                   </div>
-                  <h1 className="text-xl font-bold text-foreground mb-2">
+                  <h1 className="text-xl font-bold gradient-text mb-2">
                     {productData.productName}
                   </h1>
                   <p className="text-muted-foreground text-sm mb-4">
                     {productData.specifications.description}
                   </p>
-                  <div className="text-3xl font-bold text-primary mb-4">
+                  <div className="text-3xl font-bold bg-gradient-to-r from-green-500 to-green-600 bg-clip-text text-transparent mb-4">
                     {formatPrice(productData.currentPriceINR, productData.currentPriceUSD)}
                   </div>
-                  <div className="space-y-2">
-                    <Button onClick={addToWatchlist} variant="outline" className="w-full">
+                  <div className="space-y-3">
+                    <Button onClick={addToWatchlist} variant="pink" className="w-full rounded-xl">
                       <Heart className="h-4 w-4 mr-2" />
                       Add to Watchlist
                     </Button>
-                    <Button onClick={createPriceAlert} variant="outline" className="w-full">
+                    <Button onClick={createPriceAlert} variant="orange" className="w-full rounded-xl">
                       <Bell className="h-4 w-4 mr-2" />
                       Set Price Alert
                     </Button>
@@ -446,18 +481,22 @@ const Search = () => {
               </Card>
 
               {/* Analysis Card */}
-              <Card className="mt-4">
+              <Card className="mt-4 card-animated border-2 border-green-200 dark:border-green-800 overflow-hidden">
+                <div className="h-2 bg-gradient-to-r from-green-500 via-yellow-500 to-orange-500" />
                 <CardHeader>
-                  <CardTitle className="text-lg">AI Analysis</CardTitle>
+                  <CardTitle className="text-lg flex items-center gap-2">
+                    <span className="w-3 h-3 bg-green-500 rounded-full animate-pulse" />
+                    AI Analysis
+                  </CardTitle>
                 </CardHeader>
-                <CardContent className="space-y-3">
-                  <div>
-                    <span className="text-sm font-medium text-muted-foreground">Best Time to Buy</span>
-                    <p className="text-sm text-foreground">{productData.priceAnalysis.bestTimeToBuy}</p>
+                <CardContent className="space-y-4">
+                  <div className="p-3 bg-green-50 dark:bg-green-950/30 rounded-xl border border-green-200 dark:border-green-800">
+                    <span className="text-xs font-semibold text-green-600 dark:text-green-400 uppercase">Best Time to Buy</span>
+                    <p className="text-sm text-foreground font-medium mt-1">{productData.priceAnalysis.bestTimeToBuy}</p>
                   </div>
-                  <div>
-                    <span className="text-sm font-medium text-muted-foreground">Recommendation</span>
-                    <p className="text-sm text-foreground">{productData.priceAnalysis.recommendation}</p>
+                  <div className="p-3 bg-yellow-50 dark:bg-yellow-950/30 rounded-xl border border-yellow-200 dark:border-yellow-800">
+                    <span className="text-xs font-semibold text-yellow-600 dark:text-yellow-400 uppercase">Recommendation</span>
+                    <p className="text-sm text-foreground font-medium mt-1">{productData.priceAnalysis.recommendation}</p>
                   </div>
                 </CardContent>
               </Card>
@@ -465,9 +504,15 @@ const Search = () => {
 
             {/* Price Chart */}
             <div className="md:col-span-2">
-              <Card>
+              <Card className="card-animated border-2 border-purple-200 dark:border-purple-800 overflow-hidden">
+                <div className="h-2 bg-gradient-to-r from-purple-500 via-pink-500 to-red-500" />
                 <CardHeader>
-                  <CardTitle>Price History & Predictions</CardTitle>
+                  <CardTitle className="flex items-center gap-2">
+                    <span className="w-2 h-2 bg-purple-500 rounded-full" />
+                    <span className="w-2 h-2 bg-pink-500 rounded-full" />
+                    <span className="w-2 h-2 bg-red-500 rounded-full" />
+                    Price History & Predictions
+                  </CardTitle>
                 </CardHeader>
                 <CardContent>
                   <PriceChart

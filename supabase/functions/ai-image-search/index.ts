@@ -12,34 +12,29 @@ serve(async (req) => {
   }
 
   try {
-    // Validate JWT authentication
+    // Get authorization header - works for both logged in users and anonymous
     const authHeader = req.headers.get('Authorization');
-    if (!authHeader?.startsWith('Bearer ')) {
-      return new Response(JSON.stringify({ error: 'Unauthorized' }), { 
-        status: 401, 
-        headers: { ...corsHeaders, "Content-Type": "application/json" } 
-      });
+    let userId: string | null = null;
+
+    // Try to validate JWT if provided, but don't require it
+    if (authHeader?.startsWith('Bearer ')) {
+      const supabase = createClient(
+        Deno.env.get('SUPABASE_URL')!,
+        Deno.env.get('SUPABASE_ANON_KEY')!,
+        { global: { headers: { Authorization: authHeader } } }
+      );
+
+      try {
+        const token = authHeader.replace('Bearer ', '');
+        const { data: claimsData } = await supabase.auth.getClaims(token);
+        userId = claimsData?.claims?.sub || null;
+        if (userId) {
+          console.log('Authenticated user:', userId);
+        }
+      } catch (e) {
+        console.log('Anonymous image search (no valid user token)');
+      }
     }
-
-    const supabase = createClient(
-      Deno.env.get('SUPABASE_URL')!,
-      Deno.env.get('SUPABASE_ANON_KEY')!,
-      { global: { headers: { Authorization: authHeader } } }
-    );
-
-    const token = authHeader.replace('Bearer ', '');
-    const { data: claimsData, error: claimsError } = await supabase.auth.getClaims(token);
-    
-    if (claimsError || !claimsData?.claims) {
-      console.error('JWT validation failed:', claimsError);
-      return new Response(JSON.stringify({ error: 'Unauthorized' }), { 
-        status: 401, 
-        headers: { ...corsHeaders, "Content-Type": "application/json" } 
-      });
-    }
-
-    const userId = claimsData.claims.sub;
-    console.log('Authenticated user:', userId);
 
     const { image } = await req.json();
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
@@ -62,61 +57,79 @@ serve(async (req) => {
         model: "google/gemini-2.5-flash",
         messages: [
           {
+            role: "system",
+            content: `You are a product identification expert. Analyze the image and identify the product.
+            
+Respond ONLY with a JSON object in this exact format:
+{
+  "productName": "exact product name (e.g., 'iPhone 16 Pro Max', 'Samsung Galaxy S24')",
+  "category": "electronics" | "fashion" | "home" | "appliances" | "automotive" | "sports",
+  "confidence": 0.0-1.0,
+  "description": "brief product description"
+}
+
+Be specific with product names. Include brand, model, and variant if visible.`,
+          },
+          {
             role: "user",
             content: [
-              {
-                type: "text",
-                text: `Identify this product in the image. Respond with ONLY a JSON object in this format:
-{"productName": "exact product name with brand and model", "category": "category", "confidence": 0.9}
-
-Be specific - include brand, model name/number if visible. Examples:
-- "iPhone 15 Pro Max" not just "smartphone"
-- "Nike Air Jordan 1 Retro High" not just "sneakers"
-- "Samsung 55-inch QLED 4K Smart TV" not just "TV"
-
-If you cannot identify the product clearly, respond with: {"productName": null, "category": null, "confidence": 0}`
-              },
+              { type: "text", text: "Identify the product in this image:" },
               {
                 type: "image_url",
-                image_url: { url: image }
-              }
-            ]
-          }
+                image_url: { url: image },
+              },
+            ],
+          },
         ],
       }),
     });
 
     if (!response.ok) {
+      if (response.status === 429) {
+        return new Response(JSON.stringify({ error: "Rate limit exceeded. Please try again in a moment." }), {
+          status: 429,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+      if (response.status === 402) {
+        return new Response(JSON.stringify({ error: "AI service temporarily unavailable." }), {
+          status: 402,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
       const errorText = await response.text();
       console.error("AI gateway error:", response.status, errorText);
-      throw new Error("AI service error");
+      throw new Error(`AI gateway error: ${response.status}`);
     }
 
-    const data = await response.json();
-    const content = data.choices?.[0]?.message?.content;
+    const aiData = await response.json();
+    let content = aiData.choices?.[0]?.message?.content || "";
 
-    if (!content) {
-      throw new Error("No response from AI");
-    }
+    // Clean JSON from markdown
+    content = content.replace(/```json\n?/g, "").replace(/```\n?/g, "").trim();
 
-    let result;
+    let parsedData;
     try {
-      const jsonMatch = content.match(/```json\n?([\s\S]*?)\n?```/) || content.match(/\{[\s\S]*\}/);
-      const jsonString = jsonMatch ? (jsonMatch[1] || jsonMatch[0]) : content;
-      result = JSON.parse(jsonString);
-    } catch {
+      parsedData = JSON.parse(content);
+    } catch (parseError) {
       console.error("Failed to parse AI response:", content);
-      result = { productName: null, category: null, confidence: 0 };
+      return new Response(JSON.stringify({ 
+        error: "Could not identify product",
+        productName: null 
+      }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
     }
 
-    return new Response(JSON.stringify(result), {
+    return new Response(JSON.stringify(parsedData), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
-  } catch (error) {
-    console.error("ai-image-search error:", error);
-    return new Response(
-      JSON.stringify({ error: error instanceof Error ? error.message : "Unknown error" }),
-      { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-    );
+  } catch (error: unknown) {
+    console.error("Error in ai-image-search:", error);
+    const message = error instanceof Error ? error.message : "Failed to analyze image";
+    return new Response(JSON.stringify({ error: message }), {
+      status: 500,
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+    });
   }
 });
