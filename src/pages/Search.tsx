@@ -342,25 +342,25 @@ const Search = () => {
           <p className="text-muted-foreground">Search any product to track prices and get AI predictions</p>
         </div>
 
-        {/* Search Form */}
-        <div className="flex flex-col md:flex-row gap-4 mb-8 p-6 bg-gradient-to-r from-pink-50 via-orange-50 to-yellow-50 dark:from-pink-950/20 dark:via-orange-950/20 dark:to-yellow-950/20 rounded-2xl border-2 border-pink-200 dark:border-pink-800">
-          <div className="relative flex-1">
-            <SearchIcon className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-pink-500" />
+        {/* Search Form - Naruto/Cartoon Style */}
+        <div className="flex flex-col md:flex-row gap-4 mb-8 p-6 bg-gradient-to-r from-sky-50 via-teal-50 to-green-50 dark:from-sky-950/20 dark:via-teal-950/20 dark:to-green-950/20 rounded-2xl border-2 border-sky-200 dark:border-sky-800 search-glow rainbow-border">
+          <div className="relative flex-1 z-10">
+            <SearchIcon className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-sky-500 animate-pulse" />
             <Input
               type="text"
-              placeholder="Search for any product..."
+              placeholder="Search for any product... 🔍"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-10 h-12 text-lg border-2 border-pink-200 dark:border-pink-700 focus:border-pink-500 rounded-xl"
+              className="pl-10 h-12 text-lg border-2 border-sky-200 dark:border-sky-700 focus:border-teal-500 rounded-xl bg-white/80 dark:bg-slate-900/80 backdrop-blur-sm"
               onKeyDown={(e) => e.key === "Enter" && handleSearch()}
             />
           </div>
-          <Button variant="orange" onClick={startCamera} className="md:w-auto h-12 rounded-xl">
+          <Button onClick={startCamera} className="md:w-auto h-12 rounded-xl btn-chakra text-white z-10">
             <Camera className="h-5 w-5 mr-2" />
             Scan
           </Button>
           <Select value={selectedCategory} onValueChange={setSelectedCategory}>
-            <SelectTrigger className="w-full md:w-48 h-12 border-2 border-orange-200 dark:border-orange-700 rounded-xl">
+            <SelectTrigger className="w-full md:w-48 h-12 border-2 border-teal-200 dark:border-teal-700 rounded-xl z-10 bg-white/80 dark:bg-slate-900/80">
               <SelectValue placeholder="Category" />
             </SelectTrigger>
             <SelectContent>
@@ -371,8 +371,8 @@ const Search = () => {
               ))}
             </SelectContent>
           </Select>
-          <Button variant="gradient" onClick={() => handleSearch()} disabled={isLoading} className="h-12 px-8 rounded-xl">
-            {isLoading ? <Loader2 className="h-5 w-5 animate-spin" /> : "Search"}
+          <Button onClick={() => handleSearch()} disabled={isLoading} className="h-12 px-8 rounded-xl btn-rasengan text-white z-10">
+            {isLoading ? <Loader2 className="h-5 w-5 animate-spin" /> : "⚡ Search"}
           </Button>
         </div>
 
@@ -468,11 +468,11 @@ const Search = () => {
                     {formatPrice(productData.currentPriceINR, productData.currentPriceUSD)}
                   </div>
                   <div className="space-y-3">
-                    <Button onClick={addToWatchlist} variant="pink" className="w-full rounded-xl">
+                    <Button onClick={addToWatchlist} variant="teal" className="w-full rounded-xl btn-powerup">
                       <Heart className="h-4 w-4 mr-2" />
                       Add to Watchlist
                     </Button>
-                    <Button onClick={createPriceAlert} variant="orange" className="w-full rounded-xl">
+                    <Button onClick={createPriceAlert} variant="chakra" className="w-full rounded-xl">
                       <Bell className="h-4 w-4 mr-2" />
                       Set Price Alert
                     </Button>
