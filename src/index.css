@@ -130,10 +130,136 @@
 }
 
 @layer components {
-  /* Animated buttons */
+  /* ===== NARUTO / CARTOON STYLE ANIMATIONS ===== */
+  
+  /* Chakra Burst Button - Naruto Style */
+  .btn-chakra {
+    @apply relative overflow-hidden transition-all duration-300;
+    background: linear-gradient(135deg, hsl(25 95% 53%), hsl(0 84% 60%));
+  }
+  
+  .btn-chakra::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 0;
+    height: 0;
+    background: radial-gradient(circle, hsl(45 93% 60% / 0.8), transparent);
+    transform: translate(-50%, -50%);
+    transition: all 0.4s ease-out;
+    border-radius: 50%;
+  }
+  
+  .btn-chakra:hover::before {
+    width: 300px;
+    height: 300px;
+  }
+  
+  .btn-chakra:hover {
+    transform: scale(1.1);
+    box-shadow: 0 0 30px hsl(25 95% 53% / 0.6), 0 0 60px hsl(0 84% 60% / 0.4);
+  }
+  
+  .btn-chakra:active {
+    transform: scale(0.95);
+  }
+
+  /* Rasengan Spin Button */
+  .btn-rasengan {
+    @apply relative overflow-hidden;
+    background: linear-gradient(135deg, hsl(199 89% 48%), hsl(172 66% 50%));
+    animation: rasengan-glow 2s ease-in-out infinite;
+  }
+  
+  @keyframes rasengan-glow {
+    0%, 100% { box-shadow: 0 0 10px hsl(199 89% 48% / 0.5); }
+    50% { box-shadow: 0 0 30px hsl(199 89% 48%), 0 0 50px hsl(172 66% 50% / 0.5); }
+  }
+  
+  .btn-rasengan:hover {
+    animation: rasengan-spin 0.5s linear infinite;
+  }
+  
+  @keyframes rasengan-spin {
+    from { box-shadow: 0 0 20px hsl(199 89% 48%), 5px 0 30px hsl(172 66% 50%); }
+    to { box-shadow: 0 0 20px hsl(172 66% 50%), -5px 0 30px hsl(199 89% 48%); }
+  }
+
+  /* Cartoon Bounce Button */
+  .btn-cartoon {
+    @apply transition-all duration-200;
+    transform-origin: center bottom;
+  }
+  
+  .btn-cartoon:hover {
+    animation: cartoon-bounce 0.5s ease;
+  }
+  
+  @keyframes cartoon-bounce {
+    0% { transform: scaleY(1) scaleX(1); }
+    20% { transform: scaleY(0.8) scaleX(1.1); }
+    40% { transform: scaleY(1.15) scaleX(0.9); }
+    60% { transform: scaleY(0.95) scaleX(1.02); }
+    80% { transform: scaleY(1.02) scaleX(0.98); }
+    100% { transform: scaleY(1) scaleX(1); }
+  }
+
+  /* Power-Up Button with Energy Lines */
+  .btn-powerup {
+    @apply relative overflow-hidden;
+    background: linear-gradient(135deg, hsl(142 76% 36%), hsl(172 66% 50%));
+  }
+  
+  .btn-powerup::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 50%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, hsl(0 0% 100% / 0.4), transparent);
+    animation: power-sweep 2s linear infinite;
+  }
+  
+  @keyframes power-sweep {
+    0% { left: -100%; }
+    100% { left: 200%; }
+  }
+  
+  .btn-powerup:hover {
+    transform: translateY(-3px) scale(1.05);
+    box-shadow: 0 10px 40px hsl(142 76% 36% / 0.4);
+  }
+
+  /* Anime Speed Lines Effect */
+  .speed-lines {
+    @apply relative overflow-hidden;
+  }
+  
+  .speed-lines::before,
+  .speed-lines::after {
+    content: '';
+    position: absolute;
+    width: 2px;
+    height: 100%;
+    background: linear-gradient(transparent, hsl(45 93% 60%), transparent);
+    animation: speed-line 0.8s linear infinite;
+  }
+  
+  .speed-lines::before { left: 10%; animation-delay: 0s; }
+  .speed-lines::after { left: 90%; animation-delay: 0.4s; }
+  
+  @keyframes speed-line {
+    0% { transform: translateY(-100%); opacity: 0; }
+    50% { opacity: 1; }
+    100% { transform: translateY(100%); opacity: 0; }
+  }
+
+  /* Animated buttons base */
   .btn-animated {
     @apply relative overflow-hidden transition-all duration-300 ease-out;
-    @apply hover:scale-105 hover:shadow-lg active:scale-95;
+    @apply hover:scale-105 hover:shadow-xl active:scale-95;
   }
 
   .btn-animated::before {
@@ -146,7 +272,7 @@
     @apply opacity-100;
   }
 
-  /* Gradient text - Cool Blue */
+  /* Gradient text - Cool Blue & Teal */
   .gradient-text {
     background: linear-gradient(135deg, hsl(199 89% 48%), hsl(172 66% 50%), hsl(142 76% 36%));
     -webkit-background-clip: text;
@@ -171,7 +297,7 @@
   /* Card hover effects */
   .card-animated {
     @apply transition-all duration-300 ease-out;
-    @apply hover:shadow-xl hover:-translate-y-1;
+    @apply hover:shadow-2xl hover:-translate-y-2;
     @apply hover:border-primary/50;
   }
 
@@ -183,7 +309,7 @@
   .rainbow-border::before {
     content: '';
     position: absolute;
-    inset: -2px;
+    inset: -3px;
     background: linear-gradient(
       90deg,
       hsl(199 89% 48%),
@@ -193,7 +319,7 @@
       hsl(25 95% 53%),
       hsl(199 89% 48%)
     );
-    background-size: 300% 100%;
+    background-size: 400% 100%;
     border-radius: inherit;
     z-index: -1;
     animation: rainbow-move 3s linear infinite;
@@ -201,61 +327,61 @@
 
   @keyframes rainbow-move {
     0% { background-position: 0% 50%; }
-    100% { background-position: 300% 50%; }
+    100% { background-position: 400% 50%; }
   }
 
-  /* Pulse animation for buttons */
-  .pulse-glow {
-    animation: pulse-glow 2s ease-in-out infinite;
+  /* Chakra pulse for interactive elements */
+  .pulse-chakra {
+    animation: chakra-pulse 2s ease-in-out infinite;
   }
 
-  @keyframes pulse-glow {
+  @keyframes chakra-pulse {
     0%, 100% {
-      box-shadow: 0 0 5px hsl(199 89% 48% / 0.5), 0 0 10px hsl(172 66% 50% / 0.3);
+      box-shadow: 0 0 8px hsl(25 95% 53% / 0.5), 0 0 16px hsl(0 84% 60% / 0.3);
     }
     50% {
-      box-shadow: 0 0 20px hsl(199 89% 48% / 0.8), 0 0 30px hsl(172 66% 50% / 0.5);
+      box-shadow: 0 0 25px hsl(25 95% 53% / 0.8), 0 0 45px hsl(0 84% 60% / 0.5);
     }
   }
 
-  /* Floating animation */
-  .float {
-    animation: float 3s ease-in-out infinite;
+  /* Energy floating */
+  .float-energy {
+    animation: float-energy 3s ease-in-out infinite;
   }
 
-  @keyframes float {
-    0%, 100% { transform: translateY(0); }
-    50% { transform: translateY(-10px); }
+  @keyframes float-energy {
+    0%, 100% { transform: translateY(0) rotate(0deg); }
+    25% { transform: translateY(-8px) rotate(1deg); }
+    75% { transform: translateY(-4px) rotate(-1deg); }
   }
 
-  /* Shake animation for alerts */
-  .shake {
-    animation: shake 0.5s ease-in-out;
+  /* Ninja shake for alerts */
+  .ninja-shake {
+    animation: ninja-shake 0.6s ease-in-out;
   }
 
-  @keyframes shake {
-    0%, 100% { transform: translateX(0); }
-    25% { transform: translateX(-5px); }
-    75% { transform: translateX(5px); }
+  @keyframes ninja-shake {
+    0%, 100% { transform: translateX(0) rotate(0); }
+    20% { transform: translateX(-8px) rotate(-2deg); }
+    40% { transform: translateX(8px) rotate(2deg); }
+    60% { transform: translateX(-6px) rotate(-1deg); }
+    80% { transform: translateX(6px) rotate(1deg); }
+  }
+
+  /* Search bar glow animation */
+  .search-glow {
+    @apply transition-all duration-300;
+  }
+  
+  .search-glow:focus-within {
+    box-shadow: 0 0 0 3px hsl(199 89% 48% / 0.3), 0 0 30px hsl(172 66% 50% / 0.2);
   }
 
   /* Colorful badges */
-  .badge-sky {
-    @apply bg-sky-500 text-white;
-  }
-  .badge-teal {
-    @apply bg-teal-500 text-white;
-  }
-  .badge-orange {
-    @apply bg-orange-500 text-white;
-  }
-  .badge-green {
-    @apply bg-green-500 text-white;
-  }
-  .badge-yellow {
-    @apply bg-yellow-500 text-white;
-  }
-  .badge-red {
-    @apply bg-red-500 text-white;
-  }
+  .badge-sky { @apply bg-sky-500 text-white; }
+  .badge-teal { @apply bg-teal-500 text-white; }
+  .badge-orange { @apply bg-orange-500 text-white; }
+  .badge-green { @apply bg-green-500 text-white; }
+  .badge-yellow { @apply bg-yellow-500 text-white; }
+  .badge-red { @apply bg-red-500 text-white; }
 }
