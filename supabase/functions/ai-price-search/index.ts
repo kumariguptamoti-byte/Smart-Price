@@ -280,23 +280,64 @@ serve(async (req) => {
       "tanzanite 1 carat": { baseINR: 35000, variation: 0.04, image: "https://images.unsplash.com/photo-1599643477877-530eb83abc8e?w=400&q=80" },
     };
 
-    // Find matching product from database
-    const searchLower = productName.toLowerCase();
+    // Find matching product from database with improved fuzzy matching
+    const searchLower = sanitizedProductName.toLowerCase().trim();
+    const searchWords = searchLower.split(/\s+/).filter(w => w.length > 2);
     let matchedProduct: { baseINR: number, variation: number, image: string } | null = null;
-    let matchedName = productName;
+    let matchedName = sanitizedProductName;
+    let bestMatchScore = 0;
     
     for (const [key, value] of Object.entries(PRICE_DATABASE)) {
-      if (searchLower.includes(key) || key.includes(searchLower)) {
+      const keyLower = key.toLowerCase();
+      let score = 0;
+      
+      // Exact match gets highest score
+      if (searchLower === keyLower) {
+        score = 100;
+      }
+      // Search contains full key
+      else if (searchLower.includes(keyLower)) {
+        score = 80;
+      }
+      // Key contains full search
+      else if (keyLower.includes(searchLower)) {
+        score = 70;
+      }
+      // Word-based matching
+      else {
+        const keyWords = keyLower.split(/\s+/);
+        const matchingWords = searchWords.filter(sw => 
+          keyWords.some(kw => kw.includes(sw) || sw.includes(kw))
+        );
+        score = (matchingWords.length / Math.max(searchWords.length, 1)) * 60;
+      }
+      
+      if (score > bestMatchScore) {
+        bestMatchScore = score;
         matchedProduct = value;
         matchedName = key;
-        break;
       }
     }
 
-    // Default product if no match
-    if (!matchedProduct) {
-      matchedProduct = { baseINR: 25000, variation: 0.1, image: "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=400" };
+    // Default product only if no reasonable match found
+    if (!matchedProduct || bestMatchScore < 20) {
+      // Generate category-appropriate default
+      const catLower = (category || '').toLowerCase();
+      if (catLower.includes('grocery') || catLower.includes('food')) {
+        matchedProduct = { baseINR: 150, variation: 0.1, image: "https://images.unsplash.com/photo-1542838132-92c53300491e?w=400&q=80" };
+      } else if (catLower.includes('vehicle') || catLower.includes('auto')) {
+        matchedProduct = { baseINR: 800000, variation: 0.05, image: "https://images.unsplash.com/photo-1503376780353-7e6692767b70?w=400&q=80" };
+      } else if (catLower.includes('jewel') || catLower.includes('gold')) {
+        matchedProduct = { baseINR: 50000, variation: 0.03, image: "https://images.unsplash.com/photo-1610375461246-83df859d849d?w=400&q=80" };
+      } else if (catLower.includes('electronic')) {
+        matchedProduct = { baseINR: 25000, variation: 0.08, image: "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=400&q=80" };
+      } else {
+        matchedProduct = { baseINR: 5000, variation: 0.1, image: "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=400&q=80" };
+      }
+      matchedName = sanitizedProductName;
     }
+    
+    console.log(`Search: "${sanitizedProductName}" -> Matched: "${matchedName}" (score: ${bestMatchScore})`)
 
     const currentPriceINR = matchedProduct.baseINR;
     const exchangeRate = 83.5;
