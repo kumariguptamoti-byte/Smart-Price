@@ -37,14 +37,38 @@ serve(async (req) => {
     }
 
     const { image } = await req.json();
+    
+    // Input validation for image
+    if (!image || typeof image !== 'string') {
+      return new Response(JSON.stringify({ error: 'Invalid image: must be a non-empty string' }), {
+        status: 400,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+    
+    // Validate image format - must be a data URL or valid image URL
+    const isDataUrl = image.startsWith('data:image/');
+    const isHttpUrl = image.startsWith('http://') || image.startsWith('https://');
+    
+    if (!isDataUrl && !isHttpUrl) {
+      return new Response(JSON.stringify({ error: 'Invalid image format: must be a data URL or HTTP(S) URL' }), {
+        status: 400,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+    
+    // Check size limit (~5MB for base64)
+    if (image.length > 5000000) {
+      return new Response(JSON.stringify({ error: 'Image too large: max 5MB' }), {
+        status: 400,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+    
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     
     if (!LOVABLE_API_KEY) {
       throw new Error("LOVABLE_API_KEY is not configured");
-    }
-
-    if (!image) {
-      throw new Error("No image provided");
     }
 
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {

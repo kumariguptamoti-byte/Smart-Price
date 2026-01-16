@@ -37,6 +37,38 @@ serve(async (req) => {
     }
 
     const { productName, category } = await req.json();
+    
+    // Input validation - prevent injection and resource exhaustion
+    if (!productName || typeof productName !== 'string') {
+      return new Response(JSON.stringify({ error: 'Invalid productName: must be a non-empty string' }), {
+        status: 400,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+    
+    if (productName.length > 200) {
+      return new Response(JSON.stringify({ error: 'productName too long: max 200 characters' }), {
+        status: 400,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+    
+    // Sanitize productName - remove potentially harmful characters
+    const sanitizedProductName = productName.replace(/[<>{}|\\^`]/g, '').trim();
+    
+    if (!sanitizedProductName) {
+      return new Response(JSON.stringify({ error: 'Invalid productName after sanitization' }), {
+        status: 400,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+    
+    // Validate category if provided
+    const validCategories = ['electronics', 'fashion', 'home', 'appliances', 'automotive', 'sports', 'grocery', 'jewelry', 'vehicle'];
+    if (category && typeof category === 'string' && !validCategories.includes(category.toLowerCase())) {
+      console.log('Warning: Unknown category provided:', category);
+    }
+    
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     
     if (!LOVABLE_API_KEY) {
