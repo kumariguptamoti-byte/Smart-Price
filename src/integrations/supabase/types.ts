@@ -165,7 +165,7 @@ export type Database = {
       }
     }
     Functions: {
-      [_ in never]: never
+      cleanup_old_search_history: { Args: never; Returns: undefined }
     }
     Enums: {
       [_ in never]: never
