@@ -48,5 +48,11 @@ export const categories: Category[] = [
     name: "Beauty & Health",
     icon: "💄",
     description: "Skincare, makeup, wellness"
+  },
+  {
+    id: "jewelry",
+    name: "Gold & Jewelry",
+    icon: "💎",
+    description: "Gold, diamonds, precious stones"
   }
 ];
